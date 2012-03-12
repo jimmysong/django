@@ -458,20 +458,28 @@ class QuerySet(object):
                     # Re-raise the IntegrityError with its original traceback.
                     raise exc_info[1], None, exc_info[2]
 
-    def latest(self, field_name=None):
+    def _first_or_latest(self, field_name=None, direction="-"):
         """
         Returns the latest object, according to the model's 'get_latest_by'
         option or optional given field_name.
         """
-        latest_by = field_name or self.model._meta.get_latest_by
-        assert bool(latest_by), "latest() requires either a field_name parameter or 'get_latest_by' in the model"
+        order_by = field_name or self.model._meta.get_latest_by
+        assert bool(order_by), \
+               "_first_or_latest() requires either a field_name parameter or 'get_latest_by' in the model"
         assert self.query.can_filter(), \
                 "Cannot change a query once a slice has been taken."
         obj = self._clone()
         obj.query.set_limits(high=1)
         obj.query.clear_ordering()
-        obj.query.add_ordering('-%s' % latest_by)
+        obj.query.add_ordering('%s%s' % (direction, order_by))     
         return obj.get()
+    
+    def first(self, field_name=None):
+        return self._first_or_latest(field_name=field_name, direction="")
+    
+    def latest(self, field_name=None):
+        return self._first_or_latest(field_name=field_name, direction="-")
+    
 
     def in_bulk(self, id_list):
         """

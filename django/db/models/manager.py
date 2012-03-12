@@ -160,6 +160,9 @@ class Manager(object):
     def iterator(self, *args, **kwargs):
         return self.get_query_set().iterator(*args, **kwargs)
 
+    def first(self, *args, **kwargs):
+        return self.get_query_set().first(*args, **kwargs)
+
     def latest(self, *args, **kwargs):
         return self.get_query_set().latest(*args, **kwargs)
 
